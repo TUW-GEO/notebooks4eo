@@ -1,0 +1,66 @@
+---
+title: Classification
+author: Pikall Nikolas
+jupyter: python3
+keep-ipynb: true
+---
+
+
+```{python}
+#| echo: true
+#| code-fold: true
+# Imports
+import os
+import xarray as xr
+import numpy as np
+import datetime as dt
+import cmcrameri as cmc
+import folium
+from dotenv import dotenv_values
+
+from eodag import EODataAccessGateway, SearchResult, setup_logging
+from rasterio.crs import CRS
+
+# Setup logging
+setup_logging(0)
+```
+
+
+```{python}
+#| echo: true
+#| code-fold: true
+# Load credentials from .env file
+secrets = dotenv_values(".env")
+
+# Create an EODataAccessGateway instance
+dag = EODataAccessGateway()
+dag.set_preferred_provider("cop_dataspace")
+dag.update_providers_config(f"""
+    cop_dataspace:
+        auth:
+            credentials:
+                username: {secrets['USERNAME']}
+                password: {secrets['PASSWORD']}
+""")
+```
+
+
+```{python}
+#| echo: true
+#| code-fold: true
+#Set Search Parameters and get catalog of products
+latmin, latmax = 42.69, 43.19
+lonmin, lonmax = 16.41, 17.41
+extent = {'lonmin': lonmin, 'latmin': latmin, 'lonmax': lonmax, 'latmax': latmax}
+
+search_results, total_count = dag.search(
+    productType='S2_MSI_L2A',
+    provider='cop_dataspace',
+    #geom=extent,
+    tileIdentifier="33UXP",
+    start='2023-03-14',
+    end='2023-03-21',
+    cloudCover=100)
+
+print(f"Got {len(search_results)} products and an estimated total number of {total_count} products.")
+```

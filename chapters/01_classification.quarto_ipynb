@@ -1,0 +1,110 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "217a217c",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "title: Classification\n",
+    "author: Pikall Nikolas\n",
+    "jupyter: python3\n",
+    "keep-ipynb: true\n",
+    "---"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "5b8e62aa",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#| echo: true\n",
+    "#| code-fold: true\n",
+    "# Imports\n",
+    "import os\n",
+    "import xarray as xr\n",
+    "import numpy as np\n",
+    "import datetime as dt\n",
+    "import cmcrameri as cmc\n",
+    "import folium\n",
+    "from dotenv import dotenv_values\n",
+    "\n",
+    "from eodag import EODataAccessGateway, SearchResult, setup_logging\n",
+    "from rasterio.crs import CRS\n",
+    "\n",
+    "# Setup logging\n",
+    "setup_logging(0)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "36af8d41",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#| echo: true\n",
+    "#| code-fold: true\n",
+    "# Load credentials from .env file\n",
+    "secrets = dotenv_values(\".env\")\n",
+    "\n",
+    "# Create an EODataAccessGateway instance\n",
+    "dag = EODataAccessGateway()\n",
+    "dag.set_preferred_provider(\"cop_dataspace\")\n",
+    "dag.update_providers_config(f\"\"\"\n",
+    "    cop_dataspace:\n",
+    "        auth:\n",
+    "            credentials:\n",
+    "                username: {secrets['USERNAME']}\n",
+    "                password: {secrets['PASSWORD']}\n",
+    "\"\"\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "e083d52c",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Got 2 products and an estimated total number of 2 products.\n"
+     ]
+    }
+   ],
+   "source": [
+    "#| echo: true\n",
+    "#| code-fold: true\n",
+    "#Set Search Parameters and get catalog of products\n",
+    "latmin, latmax = 42.69, 43.19\n",
+    "lonmin, lonmax = 16.41, 17.41\n",
+    "extent = {'lonmin': lonmin, 'latmin': latmin, 'lonmax': lonmax, 'latmax': latmax}\n",
+    "\n",
+    "search_results, total_count = dag.search(\n",
+    "    productType='S2_MSI_L2A',\n",
+    "    provider='cop_dataspace',\n",
+    "    #geom=extent,\n",
+    "    tileIdentifier=\"33UXP\",\n",
+    "    start='2023-03-14',\n",
+    "    end='2023-03-21',\n",
+    "    cloudCover=100)\n",
+    "\n",
+    "print(f\"Got {len(search_results)} products and an estimated total number of {total_count} products.\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3",
+   "path": "C:\\Users\\npikall\\.conda\\envs\\pang\\share\\jupyter\\kernels\\python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
