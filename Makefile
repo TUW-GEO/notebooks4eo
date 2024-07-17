@@ -5,8 +5,7 @@ YML = $(wildcard chapters/*.yml)
 REQ = $(basename $(notdir $(YML)))
 CONDA_ENV_DIR := $(foreach i,$(REQ),$(shell conda info --base)/envs/$(i))
 KERNEL_DIR := $(foreach i,$(REQ),$(shell jupyter --data-dir)/kernels/$(i))
-CONDA_ACTIVATE_BASE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate 
-CONDA_ACTIVATE = $(CONDA_ACTIVATE_BASE) ; conda activate
+CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate ; conda activate
 
 help:
 	@echo "make clean"
@@ -18,21 +17,19 @@ help:
 
 clean:
 	rm --force --recursive .ipynb_checkpoints/
-	conda deactivate
 	for i in $(REQ); do conda remove -n $$i --all -y ; jupyter kernelspec uninstall -y $$i ; done
 
 $(CONDA_ENV_DIR):
-	for i in $(YML); do conda env create -f $$i && pip install update pip setuptools wheel ; done
+	for i in $(YML); do conda env create -f $$i ; $(CONDA_ACTIVATE) $$i ; pip install --upgrade pip setuptools wheel ; done
 
 environment: $(CONDA_ENV_DIR)
 	@echo -e "conda environments are ready."
 
-$(KERNEL_DIR):
-	$(CONDA_ACTIVATE_BASE)
-	conda install jupyter -y
+$(KERNEL_DIR): $(CONDA_ENV_DIR)
+	pip install jupyter
 	for i in $(REQ); do $(CONDA_ACTIVATE) $$i ; python -m ipykernel install --user --name $$i --display-name $$i ; conda deactivate; done
 
-kernel: $(KERNEL_DIR) $(CONDA_ENV_DIR)
+kernel: $(KERNEL_DIR)
 	@echo -e "conda jupyter kernel is ready."
 
 post-render:
