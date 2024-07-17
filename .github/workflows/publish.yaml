@@ -17,21 +17,19 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Install Python and Dependencies
-        id: setup-python
-        run: make kernel
-
-      - uses: actions/cache@v3
-        with:
-          path: ~/.local/share/jupyter/kernels
-          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-jupyter-${{ hashFiles('chapters/*.yml') }}
-
       - name: Render and Publish
+        id: setup-python
         uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Jupyter Kernels
+        uses: actions/cache@v3
+        with:
+          path: ~/.local/share/jupyter/kernels
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-jupyter-${{ hashFiles('chapters/*.yml') }}
 
       - name: cache binder build on mybinder.org
         uses: jupyterhub/repo2docker-action@master

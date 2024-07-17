@@ -1,6 +1,8 @@
 project:
   type: book
-  pre-render: make kernel
+  pre-render: 
+    - make kernel
+    - make data
   post-render: make post-render
 
 book:
