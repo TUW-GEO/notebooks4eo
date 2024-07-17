@@ -1,0 +1,82 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "notebooks4eo",
+    "section": "",
+    "text": "Preface\nThis is a collection of Jupyter notebooks for education at the TU Wien.",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "chapters/01_classification.html",
+    "href": "chapters/01_classification.html",
+    "title": "1  Classification",
+    "section": "",
+    "text": "Code\n# Imports\nimport os\nimport xarray as xr\nimport numpy as np\nimport datetime as dt\nimport cmcrameri as cmc\nimport folium\nfrom dotenv import dotenv_values\n\nfrom eodag import EODataAccessGateway, SearchResult, setup_logging\nfrom rasterio.crs import CRS\n\n# Setup logging\nsetup_logging(0)",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Classification</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/02_floodmapping.html",
+    "href": "chapters/02_floodmapping.html",
+    "title": "2  Reverend Bayes updates our Belief in Flood Detection",
+    "section": "",
+    "text": "2.1 From Backscattering to Flood Mapping\nThis notebook explains how microwave (\\(\\sigma^0\\)) backscattering (Figure 2.1) can be used to map the extent of a flood. We replicate in this exercise the work of Bauer-Marschallinger et al. (2022) on the TU Wien Bayesian-based flood mapping algorithm.\nIn the following lines we create a map with EOmaps (Quast, n.d.) of the \\(\\sigma^0\\) backscattering values.\nCode\nm = Maps(ax=121, crs=3857)\nm.set_data(data=sig0_dc, x=\"x\", y=\"y\", parameter=\"SIG0\", crs=Maps.CRS.Equi7_EU)\nm.plot_map()\nm.add_colorbar(label=\"$\\sigma^0$ (dB)\", orientation=\"vertical\", hist_bins=30)\nm.add_scalebar(n=5)\nm2 = m.new_map(ax=122, crs=3857)\nm2.set_extent(m.get_extent())\nm2.add_wms.OpenStreetMap.add_layer.default()\nm.apply_layout(\n    {\n        'figsize': [7.32, 4.59],\n        '0_map': [0.05, 0.18, 0.35, 0.64],\n        '1_cb': [0.8125, 0.1, 0.1, 0.8],\n        '1_cb_histogram_size': 0.8,\n        '2_map': [0.4375, 0.18, 0.35, 0.64]\n        }\n    )\nm.show()\n\n\n\n\n\n\n\nFigure 2.1: Area targeted for \\(\\sigma^0\\) backscattering is the Greek region of Thessaly, which experienced a major flood in February of 2018.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Reverend Bayes updates our Belief in Flood Detection</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/02_floodmapping.html#microwave-backscattering-over-land-and-water",
+    "href": "chapters/02_floodmapping.html#microwave-backscattering-over-land-and-water",
+    "title": "2  Reverend Bayes updates our Belief in Flood Detection",
+    "section": "2.2 Microwave Backscattering over Land and Water",
+    "text": "2.2 Microwave Backscattering over Land and Water\nReverend Bayes was concerned with two events, one (the hypothesis) occurring before the other (the evidence). If we know its cause, it is easy to logically deduce the probability of an effect. However, in this case we want to deduce the probability of a cause from an observed effect, also known as “reversed probability”. In the case of flood mapping, we have \\(\\sigma^0\\) backscatter observations over land (the effect) and we want to deduce the probability of flooding (\\(F\\)) and non-flooding (\\(NF\\)).\nIn other words, we want to know the probability of flooding \\(P(F)\\) given a pixel’s \\(\\sigma^0\\):\n\\[P(F|\\sigma^0)\\]\nand the probability of a pixel being not flooded \\(P(NF)\\) given a certain \\(\\sigma^0\\):\n\\[P(NF|\\sigma^0).\\]\nBayes showed that these can be deduced from the observation that forward and reversed probability are equal, so that:\n\\[P(F|\\sigma^0)P(\\sigma^0) = P(\\sigma^0|F)P(F)\\]\nand\n\\[P(NF|\\sigma^0)P(\\sigma^0) = P(\\sigma^0|NF)P(NF).\\]\nThe forward probability of \\(\\sigma^0\\) given the occurrence of flooding (\\(P(\\sigma^0|F)\\)) and \\(\\sigma^0\\) given no flooding (\\(P(\\sigma^0|NF)\\)) can be extracted from past information on backscattering over land and water surfaces. As seen in the sketch below (Figure 2.2), the characteristics of backscattering over land and water differ considerably.\n\n\n\n\n\n\nFigure 2.2: Schematic backscattering over land and water. Image from Geological Survey Ireland",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Reverend Bayes updates our Belief in Flood Detection</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/02_floodmapping.html#likelihoods",
+    "href": "chapters/02_floodmapping.html#likelihoods",
+    "title": "2  Reverend Bayes updates our Belief in Flood Detection",
+    "section": "2.3 Likelihoods",
+    "text": "2.3 Likelihoods\nThe so-called likelihoods of \\(P(\\sigma^0|F)\\) and \\(P(\\sigma^0|NF)\\) can thus be calculated from past backscattering information. Without going into the details of how these likelihoods are calculated, you can click on a pixel of the map to plot the likelihoods of \\(\\sigma^0\\) being governed by land or water.\n\n\nCode\nRANGE = np.arange(-30, 0, 0.1)\nhparam_dc = xr.open_dataset('../data/tuw_s1_harpar/S1_CSAR_IWGRDH/SIG0-HPAR/V0M2R3/EQUI7_EU020M/E054N006T3/D080.nc')\nplia_dc = xr.open_dataset('../data/s1_parameters/S1_CSAR_IWGRDH/PLIA-TAG/V01R03/EQUI7_EU020M/E054N006T3/PLIA-TAG-MEAN_20200101T000000_20201231T235959__D080_E054N006T3_EU020M_V01R03_S1IWGRDH.nc')\nsig0_dc['id'] = (('y', 'x'), np.arange(sig0_dc.SIG0.size).reshape(sig0_dc.SIG0.shape))\nhparam_dc['id'] = (('y', 'x'), np.arange(sig0_dc.SIG0.size).reshape(sig0_dc.SIG0.shape))\nplia_dc['id'] = (('y', 'x'), np.arange(sig0_dc.SIG0.size).reshape(sig0_dc.SIG0.shape))\n\ndef calc_water_likelihood(id, x):\n    point = plia_dc.where(plia_dc.id == id, drop=True)\n    wbsc_mean = point.PLIA * -0.394181 + -4.142015\n    wbsc_std = 2.754041\n    return norm.pdf(x, wbsc_mean.to_numpy(), wbsc_std).flatten()\n\ndef expected_land_backscatter(data, dtime_str):\n    w = np.pi * 2 / 365\n    dt = datetime.datetime.strptime(dtime_str, \"%Y-%m-%d\")\n    t = dt.timetuple().tm_yday\n    wt = w * t\n\n    M0 = data.M0\n    S1 = data.S1\n    S2 = data.S2\n    S3 = data.S3\n    C1 = data.C1\n    C2 = data.C2\n    C3 = data.C3\n    hm_c1 = (M0 + S1 * np.sin(wt)) + (C1 * np.cos(wt))\n    hm_c2 = ((hm_c1 + S2 * np.sin(2 * wt)) + C2 * np.cos(2 * wt))\n    hm_c3 = ((hm_c2 + S3 * np.sin(3 * wt)) + C3 * np.cos(3 * wt))\n    return hm_c3\n\ndef calc_land_likelihood(id, x):\n    point = hparam_dc.where(hparam_dc.id == id, drop=True)\n    lbsc_mean = expected_land_backscatter(point, '2018-02-01')\n    lbsc_std = point.STD\n    return norm.pdf(x, lbsc_mean.to_numpy(), lbsc_std.to_numpy()).flatten()\n\ndef calc_likelihoods(id, x):\n    if isinstance(x, list):\n        x = np.arange(x[0], x[1], 0.1)\n    water_likelihood, land_likelihood = calc_water_likelihood(id=id, x=x), calc_land_likelihood(id=id, x=x)\n    return water_likelihood, land_likelihood\n\ndef view_bayes_flood(sig0_dc, calc_posteriors=None, bayesian_flood_decision=None):\n\n    # initialize a map on top\n    m = Maps(ax=122, layer=\"data\", crs=Maps.CRS.Equi7_EU)\n\n    # initialize 2 matplotlib plot-axes next to the map\n    ax_upper = m.f.add_subplot(221)\n    ax_upper.set_ylabel(\"likelihood\")\n    ax_upper.set_xlabel(\"$\\sigma^0 (dB)$\")\n\n    ax_lower = m.f.add_subplot(223)\n    ax_lower.set_ylabel(\"probability\")\n    ax_lower.set_xlabel(\"$\\sigma^0 (dB)$\")\n\n    # -------- assign data to the map and plot it\n    if bayesian_flood_decision is not None:\n        # add map\n        m2 = m.new_layer(layer=\"map\")\n        m2.add_wms.OpenStreetMap.add_layer.default()\n        flood_classification =  bayesian_flood_decision(sig0_dc.id, sig0_dc.SIG0)\n        sig0_dc[\"decision\"] = (('y', 'x'), flood_classification.reshape(sig0_dc.SIG0.shape))\n        sig0_dc[\"decision\"] = sig0_dc.decision.where(sig0_dc.SIG0.notnull())\n        sig0_dc[\"decision\"] = sig0_dc.decision.where(sig0_dc.decision==0)\n        m.set_data(data=sig0_dc, x=\"x\", y=\"y\", parameter=\"decision\", crs=Maps.CRS.Equi7_EU)\n        m.plot_map()\n        m.show_layer(\"map\", (\"data\", 0.5))\n        m.apply_layout(\n            {\n                'figsize': [7.32, 4.59],\n                '0_map': [0.44573, 0.11961, 0.3375, 0.75237],\n                '1_': [0.10625, 0.5781, 0.3125, 0.29902],\n                '2_': [0.10625, 0.11961, 0.3125, 0.29902],\n            }\n        )\n\n    else:\n        m.set_data(data=sig0_dc, x=\"x\", y=\"y\", parameter=\"SIG0\", crs=Maps.CRS.Equi7_EU)\n        m.plot_map()\n        m.add_colorbar(label=\"$\\sigma^0$ (dB)\", orientation=\"vertical\", hist_bins=30)\n        m.apply_layout(\n            {\n                'figsize': [7.32, 4.59],\n                '0_map': [0.44573, 0.11961, 0.3375, 0.75237],\n                '1_': [0.10625, 0.5781, 0.3125, 0.29902],\n                '2_': [0.10625, 0.11961, 0.3125, 0.29902],\n                '3_cb': [0.8, 0.09034, 0.1, 0.85],\n                '3_cb_histogram_size': 0.8\n            }\n        )\n\n    def update_plots(ID, **kwargs):\n        \n        # get the data\n        value = sig0_dc.where(sig0_dc.id == ID, drop=True).SIG0.to_numpy()\n        y1_pdf, y2_pdf = calc_water_likelihood(ID, RANGE), calc_land_likelihood(ID, RANGE)\n\n        # plot the lines and vline\n        (water,) = ax_upper.plot(RANGE, y1_pdf, 'k-', lw=2, label=\"water\")\n        (land,) = ax_upper.plot(RANGE, y2_pdf,'r-', lw=5, alpha=0.6, label=\"land\")\n        value_left = ax_upper.vlines(x=value, ymin=0, ymax=np.max((y1_pdf, y2_pdf)), lw=3, label=\"observed\")\n        ax_upper.legend(loc=\"upper left\")\n\n        # add all artists as \"temporary pick artists\" so that they\n        # are removed when the next datapoint is selected\n        for a in [water, land, value_left]:\n            m.cb.pick.add_temporary_artist(a)\n\n        if calc_posteriors is not None:\n            f_post, nf_post = calc_posteriors(y1_pdf, y2_pdf)\n            (f,) = ax_lower.plot(RANGE, f_post, 'k-', lw=2, label=\"flood\")\n            (nf,) = ax_lower.plot(RANGE, nf_post,'r-', lw=5, alpha=0.6, label=\"non-flood\")\n            value_right = ax_lower.vlines(x=value, ymin=-0.1, ymax=1.1, lw=3, label=\"observed\")\n            ax_lower.legend(loc=\"upper left\")\n            for a in [f, nf, value_right]:\n                m.cb.pick.add_temporary_artist(a)\n\n        # re-compute axis limits based on the new artists\n        ax_upper.relim()\n        ax_upper.autoscale()\n\n    m.cb.pick.attach(update_plots)\n    m.cb.pick.attach.mark(permanent=False, buffer=1, fc=\"none\", ec=\"r\")\n    m.cb.pick.attach.mark(permanent=False, buffer=2, fc=\"none\", ec=\"r\", ls=\":\")\n    m.show()\n\nview_bayes_flood(sig0_dc)\n\n\n\n\n\n\n\nFigure 2.3: Likelihoods for \\(\\sigma^0\\) being associated with land or water for 1 pixel in the Greek area of Thessaly. Likelihoods are calculated over a range of \\(\\sigma^0\\). The pixel’s observed \\(\\sigma^0\\) is given with a vertical line. Click on the map to re-calculate and update this figure for another pixel in the study area. Map created with EOmaps (Quast, n.d.).",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Reverend Bayes updates our Belief in Flood Detection</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/02_floodmapping.html#posteriors",
+    "href": "chapters/02_floodmapping.html#posteriors",
+    "title": "2  Reverend Bayes updates our Belief in Flood Detection",
+    "section": "2.4 Posteriors",
+    "text": "2.4 Posteriors\nHaving calculated the likelihoods, we can now move on to calculate the probability of (non-)flooding given a pixel’s \\(\\sigma^0\\). These so-called posteriors need one more piece of information, as can be seen in the equation above. We need the probability that a pixel is flooded \\(P(F)\\) or not flooded \\(P(NF)\\). Of course, these are the figures we’ve been trying to find this whole time. We don’t actually have them yet, so what can we do? In Bayesian statistics, we can just start with our best guess. These guesses are called our “priors”, because they are the beliefs we hold prior to looking at the data. This subjective prior belief is the foundation Bayesian statistics, and we use the likelihoods we just calculated to update our belief in this particular hypothesis. This updated belief is called the “posterior”.\nLet’s say that our best estimate for the chance of flooding versus non-flooding of a pixel is 50-50: a coin flip. We now can also calculate the probability of backscattering \\(P(\\sigma^0)\\), as the weighted average of the water and land likelihoods, ensuring that our posteriors range between 0 to 1.\nThe following code block shows how we calculate the priors.\n\n\nCode\ndef calc_posteriors(water_likelihood, land_likelihood):\n    evidence = (water_likelihood * 0.5) + (land_likelihood * 0.5)\n    return (water_likelihood * 0.5) / evidence,  (land_likelihood * 0.5) / evidence\n\n\nWe can plot the posterior probabilities of flooding and non-flooding again and compare these to pixel’s measured \\(\\sigma^0\\). Click on a pixel to calculate the posterior probability.\n\n\nCode\nview_bayes_flood(sig0_dc, calc_posteriors)\n\n\n\n\n\n\n\nFigure 2.4: Posterior probabilities for \\(\\sigma^0\\) of 1 pixel being associated with land for water in the Greek area of Thessaly. Click on the map to re-calculate and update this figure for another pixel in the study area. Map created with EOmaps (Quast, n.d.).",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Reverend Bayes updates our Belief in Flood Detection</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/02_floodmapping.html#flood-classification",
+    "href": "chapters/02_floodmapping.html#flood-classification",
+    "title": "2  Reverend Bayes updates our Belief in Flood Detection",
+    "section": "2.5 Flood Classification",
+    "text": "2.5 Flood Classification\nWe are now ready to combine all this information and classify the pixels according to the probability of flooding given the backscatter value of each pixel. Here we just look whether the probability of flooding is higher than non-flooding:\n\n\nCode\ndef bayesian_flood_decision(id, sig0_dc):\n    nf_post_prob, f_post_prob = calc_posteriors(*calc_likelihoods(id,  sig0_dc))\n    return np.greater(f_post_prob, nf_post_prob)\n\n\nClick on a point in the below map to see the likelihoods and posterior distributions (in the left-hand subplots).\n\n\nCode\nview_bayes_flood(sig0_dc, calc_posteriors, bayesian_flood_decision)\n\n\n\n\n\n\n\nFigure 2.5: Flood extent of the Greek region of Thessaly based on Bayesian probabilities are shown on the map superimposed on an open street map. Click on a pixel to generate the point’s water and land likelihoods as well as the posterior probabilities. Map created with EOmaps (Quast, n.d.).\n\n\n\n\n\n\n\n\nBauer-Marschallinger, Bernhard, Senmao Cao, Mark Edwin Tupas, Florian Roth, Claudio Navacchi, Thomas Melzer, Vahid Freeman, and Wolfgang Wagner. 2022. “Satellite-Based Flood Mapping Through Bayesian Inference from a Sentinel-1 SAR Datacube.” Remote Sensing 14 (15): 3673. https://doi.org/10.3390/rs14153673.\n\n\nQuast, Raphael. n.d. “EOmaps: A Python Package to Visualize and Analyze Geographical Datasets.” https://doi.org/10.5281/zenodo.6459598.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Reverend Bayes updates our Belief in Flood Detection</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/references.html",
+    "href": "chapters/references.html",
+    "title": "References",
+    "section": "",
+    "text": "Bauer-Marschallinger, Bernhard, Senmao Cao, Mark Edwin Tupas, Florian\nRoth, Claudio Navacchi, Thomas Melzer, Vahid Freeman, and Wolfgang\nWagner. 2022. “Satellite-Based Flood\nMapping Through Bayesian\nInference from a Sentinel-1 SAR\nDatacube.” Remote Sensing 14 (15): 3673. https://doi.org/10.3390/rs14153673.\n\n\nQuast, Raphael. n.d. “EOmaps: A Python Package to Visualize and\nAnalyze Geographical Datasets.” https://doi.org/10.5281/zenodo.6459598.",
+    "crumbs": [
+      "References"
+    ]
+  }
+]
