@@ -18,7 +18,13 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Install Python and Dependencies
+        id: setup-python
         run: make kernel
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.local/share/jupyter/kernels
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-jupyter-${{ hashFiles('chapters/*.yml') }}
 
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2

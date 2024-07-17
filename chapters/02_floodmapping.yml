@@ -2,10 +2,10 @@ name: 02_floodmapping
 channels:
   - conda-forge
 dependencies:
-  - mamba
-  - pip
-  - ipykernel
   - python=3.10
+  - pip
+  - mamba
+  - jupyter
   - eomaps
   - numpy
   - scipy
