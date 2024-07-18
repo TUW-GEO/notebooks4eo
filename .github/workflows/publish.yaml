@@ -27,7 +27,9 @@ jobs:
         id: cache-jupyter-kernels-restore
         uses: actions/cache/restore@v4
         with:
-          path: ~/.local/share/jupyter/kernels
+          path: |
+            ~/.local/share/jupyter/kernels
+            ~/miniconda3/envs
           key: ${{ runner.os }}-jupyter-${{ hashFiles('chapters/*.yml') }}
 
       - name: Render and Publish
@@ -38,13 +40,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
-      - run: echo $(ls  ~/.local/share/jupyter/kernels)
+      - run: echo $(conda info --base)
 
       - name: Cache Jupyter Kernels
         id: cache-jupyter-kernels-save
         uses: actions/cache/save@v4
         with:
-          path: ~/.local/share/jupyter/kernels
+          path: |
+            ~/.local/share/jupyter/kernels
+            ~/miniconda3/envs
           key: ${{ steps.cache-jupyter-kernels-restore.outputs.cache-primary-key }}
 
       # - name: Cache Binder Build on mybinder.org
