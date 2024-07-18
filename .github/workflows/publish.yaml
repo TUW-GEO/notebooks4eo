@@ -29,7 +29,7 @@ jobs:
         with:
           path: |
             ~/.local/share/jupyter/kernels
-            ~/miniconda3/envs
+            /usr/share/miniconda/envs
           key: ${{ runner.os }}-jupyter-${{ hashFiles('chapters/*.yml') }}
 
       - name: Render and Publish
@@ -48,7 +48,7 @@ jobs:
         with:
           path: |
             ~/.local/share/jupyter/kernels
-            ~/miniconda3/envs
+            /usr/share/miniconda/envs
           key: ${{ steps.cache-jupyter-kernels-restore.outputs.cache-primary-key }}
 
       # - name: Cache Binder Build on mybinder.org
@@ -66,7 +66,7 @@ jobs:
           NB_PATH=($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '[.]ipynb$'))
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit ${RMD_PATH[*]/.ipynb} -m "Quarto output"
+          git commit ${RMD_PATH[*]/.ipynb} -m "Quarto output" || echo "No changes to commit"
 
       - name: Push Commit
         if: github.ref == 'refs/heads/main'
