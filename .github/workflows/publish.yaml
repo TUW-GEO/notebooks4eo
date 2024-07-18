@@ -39,8 +39,6 @@ jobs:
           target: gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
-      - run: echo $(conda info --base)
 
       - name: Cache Jupyter Kernels
         id: cache-jupyter-kernels-save
@@ -58,15 +56,13 @@ jobs:
       #     MYBINDERORG_TAG: ${{ github.event.ref }} 
       #     REPO2DOCKER_EXTRA_ARGS: --subdir notebooks
 
-      - run: echo $(ls  $(pwd)/notebooks)
-
       - name: Commit Files
         if: github.ref == 'refs/heads/main'
         run: |
           NB_PATH=($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '[.]ipynb$'))
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit ${RMD_PATH[*]/.ipynb} -m "Quarto output" || echo "No changes to commit"
+          git commit ${NB_PATH[*]/.ipynb} -m "Quarto output" || echo "No changes to commit"
 
       - name: Push Commit
         if: github.ref == 'refs/heads/main'
