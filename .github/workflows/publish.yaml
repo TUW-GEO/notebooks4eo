@@ -8,8 +8,8 @@ name: Quarto Publish
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout Quarto Book
         uses: actions/checkout@v4
@@ -25,14 +25,14 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Restore Cache Jupyter Kernels
-        id: cache-jupyter-kernels-restore
-        uses: actions/cache/restore@v4
+      - name: Restore Cache Jupyter Environments
+        uses: actions/cache@v4
         with:
           path: |
             ~/.local/share/jupyter/kernels
             /usr/share/miniconda/envs
           key: ${{ runner.os }}-jupyter-${{ hashFiles('chapters/*.yml') }}
+          restore-keys: ${{ runner.os }}-jupyter-
 
       - name: Render and Publish
         id: setup-python
@@ -41,15 +41,6 @@ jobs:
           target: gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cache Jupyter Kernels
-        id: cache-jupyter-kernels-save
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            ~/.local/share/jupyter/kernels
-            /usr/share/miniconda/envs
-          key: ${{ steps.cache-jupyter-kernels-restore.outputs.cache-primary-key }}
 
       # - name: Cache Binder Build on mybinder.org
       #   uses: jupyterhub/repo2docker-action@master
@@ -62,8 +53,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           NB_PATH=($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '[.]ipynb$'))
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.name "$GITHUB_ACTOR"
+          git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
           git commit ${NB_PATH[*]} -m "Quarto output" || echo "No changes to commit"
 
       - name: Push Commit
