@@ -34,7 +34,7 @@ kernel: $(KERNEL_DIR)
 	@echo -e "conda jupyter kernel is ready."
 
 post-render:
-	mv chapters/*.ipynb pangeo-workflow-examples/
+	- mv chapters/*.ipynb pangeo-workflow-examples/ >/dev/null 2>&1
 
 data:
 	wget -q -P ./data https://cloud.geo.tuwien.ac.at/s/AezWMFwmFQJsKyr/download/floodmap.zip

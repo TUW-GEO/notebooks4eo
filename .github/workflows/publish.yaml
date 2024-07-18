@@ -31,9 +31,9 @@ jobs:
           path: ~/.local/share/jupyter/kernels
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-jupyter-${{ hashFiles('chapters/*.yml') }}
 
-      - name: cache binder build on mybinder.org
+      - name: Cache Binder Build on mybinder.org
         uses: jupyterhub/repo2docker-action@master
         with:
           NO_PUSH: true
           MYBINDERORG_TAG: ${{ github.event.ref }} 
-          REPO2DOCKER_EXTRA_ARGS: --sub-dir pangeo-workflow-examples
+          REPO2DOCKER_EXTRA_ARGS: --subdir pangeo-workflow-examples
