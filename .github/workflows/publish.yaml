@@ -36,4 +36,4 @@ jobs:
         with:
           NO_PUSH: true
           MYBINDERORG_TAG: ${{ github.event.ref }} 
-          REPO2DOCKER_EXTRA_ARGS: --subdir pangeo-workflow-examples
+          REPO2DOCKER_EXTRA_ARGS: --subdir notebooks
