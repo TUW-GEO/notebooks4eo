@@ -62,7 +62,7 @@ jobs:
           NB_PATH=($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '[.]ipynb$'))
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit ${NB_PATH[*]/.ipynb} -m "Quarto output" || echo "No changes to commit"
+          git commit ${NB_PATH[*]} -m "Quarto output" || echo "No changes to commit"
 
       - name: Push Commit
         if: github.ref == 'refs/heads/main'
