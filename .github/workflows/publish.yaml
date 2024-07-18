@@ -37,3 +37,18 @@ jobs:
           NO_PUSH: true
           MYBINDERORG_TAG: ${{ github.event.ref }} 
           REPO2DOCKER_EXTRA_ARGS: --subdir notebooks
+      - name: Commit Files
+        if: github.ref == 'refs/heads/master'
+        run: |
+          git checkout pythia
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add notebooks/*.ipynb
+          git commit -m "Quarto output"
+      - name: Push commit
+        if: github.ref == 'refs/heads/master'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: pythia
+          force: true
