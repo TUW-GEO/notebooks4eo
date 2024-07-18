@@ -13,8 +13,6 @@ jobs:
     steps:
       - name: Checkout Quarto Book
         uses: actions/checkout@v4
-        with:
-          path: main
 
       - name: Checkout Pythia Book
         uses: actions/checkout@v4
@@ -25,20 +23,29 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
+      - name: Restore Cache Jupyter Kernels
+        id: cache-jupyter-kernels-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.local/share/jupyter/kernels
+          key: ${{ runner.os }}-jupyter-${{ hashFiles('chapters/*.yml') }}
+
       - name: Render and Publish
         id: setup-python
         uses: quarto-dev/quarto-actions/publish@v2
         with:
-          path: main
           target: gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+      - run: echo $(ls  ~/.local/share/jupyter/kernels)
 
       - name: Cache Jupyter Kernels
-        uses: actions/cache@v3
+        id: cache-jupyter-kernels-save
+        uses: actions/cache/save@v4
         with:
           path: ~/.local/share/jupyter/kernels
-          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-jupyter-${{ hashFiles('chapters/*.yml') }}
+          key: ${{ steps.cache-jupyter-kernels-restore.outputs.cache-primary-key }}
 
       # - name: Cache Binder Build on mybinder.org
       #   uses: jupyterhub/repo2docker-action@master
@@ -47,15 +54,15 @@ jobs:
       #     MYBINDERORG_TAG: ${{ github.event.ref }} 
       #     REPO2DOCKER_EXTRA_ARGS: --subdir notebooks
 
+      - run: echo $(ls  $(pwd)/notebooks)
+
       - name: Commit Files
         if: github.ref == 'refs/heads/main'
         run: |
-          cp main/notebooks/*.ipynb eo-datascience-cookbook/notebooks/*.ipynb
-          cd eo-datascience-cookbook
+          NB_PATH=($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '[.]ipynb$'))
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add notebooks/*.ipynb
-          git commit -m "Quarto output"
+          git commit ${RMD_PATH[*]/.ipynb} -m "Quarto output"
 
       - name: Push Commit
         if: github.ref == 'refs/heads/main'

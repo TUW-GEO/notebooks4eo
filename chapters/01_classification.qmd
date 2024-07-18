@@ -6,7 +6,6 @@ jupyter:
     name: "01_classification"
     language: "python"
     display_name: "01_classification"
-keep-ipynb: true
 ---
 
 ```{python}

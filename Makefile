@@ -2,6 +2,7 @@
 SHELL = /bin/bash
 .PHONY: help clean environment kernel post-render data
 YML = $(wildcard chapters/*.yml)
+QMD = $(wildcard chapters/*.qmd)
 REQ = $(basename $(notdir $(YML)))
 CONDA_ENV_DIR := $(foreach i,$(REQ),$(shell conda info --base)/envs/$(i))
 KERNEL_DIR := $(foreach i,$(REQ),$(shell jupyter --data-dir)/kernels/$(i))
@@ -34,7 +35,9 @@ kernel: $(KERNEL_DIR)
 	@echo -e "conda jupyter kernel is ready."
 
 post-render:
+	for i in $(QMD); do quarto convert $$i; done
 	- mv chapters/*.ipynb notebooks/ >/dev/null 2>&1
+	- for f in chapters/*.quarto_ipynb ; do mv -- "$f" "${f%.quarto_ipynb}.ipynb"  >/dev/null 2>&1; done
 	cp Makefile notebooks/
 
 data:

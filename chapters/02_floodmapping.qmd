@@ -6,8 +6,6 @@ jupyter:
     name: "02_floodmapping"
     language: "python"
     display_name: "02_floodmapping"
-keep-ipynb: true
-code-fold: true
 ---
 
 ![Image from [wikipedia](https://upload.wikimedia.org/wikipedia/commons/d/d4/Thomas_Bayes.gif)](https://upload.wikimedia.org/wikipedia/commons/d/d4/Thomas_Bayes.gif)
