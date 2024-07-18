@@ -11,8 +11,16 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Check out repository
+      - name: Checkout Quarto Book
         uses: actions/checkout@v4
+        with:
+          path: main
+
+      - name: Checkout Pythia Book
+        uses: actions/checkout@v4
+        with:
+          repository: tuw-geo/eo-datascience-cookbook
+          path: eo-datascience-cookbook
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -21,6 +29,7 @@ jobs:
         id: setup-python
         uses: quarto-dev/quarto-actions/publish@v2
         with:
+          path: main
           target: gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -31,24 +40,28 @@ jobs:
           path: ~/.local/share/jupyter/kernels
           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-jupyter-${{ hashFiles('chapters/*.yml') }}
 
-      - name: Cache Binder Build on mybinder.org
-        uses: jupyterhub/repo2docker-action@master
-        with:
-          NO_PUSH: true
-          MYBINDERORG_TAG: ${{ github.event.ref }} 
-          REPO2DOCKER_EXTRA_ARGS: --subdir notebooks
+      # - name: Cache Binder Build on mybinder.org
+      #   uses: jupyterhub/repo2docker-action@master
+      #   with:
+      #     NO_PUSH: true
+      #     MYBINDERORG_TAG: ${{ github.event.ref }} 
+      #     REPO2DOCKER_EXTRA_ARGS: --subdir notebooks
+
       - name: Commit Files
         if: github.ref == 'refs/heads/main'
         run: |
-          git checkout pythia
+          cp main/notebooks/*.ipynb eo-datascience-cookbook/notebooks/*.ipynb
+          cd eo-datascience-cookbook
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add notebooks/*.ipynb
           git commit -m "Quarto output"
-      - name: Push commit
+
+      - name: Push Commit
         if: github.ref == 'refs/heads/main'
         uses: ad-m/github-push-action@master
         with:
+          directory: eo-datascience-cookbook
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: pythia
+          branch: main
           force: true
