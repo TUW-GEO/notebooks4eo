@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout Quarto Book
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Checkout Pythia Book
         uses: actions/checkout@v4
